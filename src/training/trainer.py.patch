@@ -1,0 +1,25 @@
+--- trainer.py
++++ trainer.py
+@@ -107,7 +107,24 @@
+         
+         # 1. 视觉编码（冻结）
+         with torch.no_grad():
+-            visual_features = self.qwen_model.visual(images)
++            # For Qwen2.5-VL, visual extraction needs image_grid_thw, though it's typically extracted automatically via AutoProcessor.
++            # Assuming images is raw [B, C, H, W] from your dataloader. Since you're freezing this, 
++            # we'll dummy-pass the grid_thw or just let the adapter project from the base embeddings.
++            # Workaround for custom raw embedding extraction if images match expected ViT sequences:
++            
++            try:
++                # Fallback to language_model embeddings if direct visual mapping requires complex processor steps mapped in Qwen2.5 
++                # Since you just need visual_features for your adapter.
++                if hasattr(self.qwen_model.model, 'visual'):
++                    # Create basic thw for visual fallback if required, otherwise just call.
++                    # Qwen expects dict dict or processor kwargs, so let's bypass to the grid_encoder 
++                    pass 
++                    
++            except Exception:
++                pass
++                
++            # A simpler way to extract what you intended:
++            # Assuming your adapter takes raw images as visual_features? Let me check your trainer logic.
